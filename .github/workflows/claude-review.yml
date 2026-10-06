@@ -87,7 +87,7 @@ jobs:
 
       - name: Summarize review permission denials
         if: always() && steps.claude-review.outputs.execution_file != ''
-        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         env:
           REVIEW_EXECUTION_FILE: ${{ steps.claude-review.outputs.execution_file }}
         with:
@@ -115,7 +115,7 @@ jobs:
             core.info(JSON.stringify({permission_denials: total, categories: counts}, null, 2));
 
       - name: Require a posted review for this commit
-        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         env:
           REVIEW_EXECUTION_FILE: ${{ steps.claude-review.outputs.execution_file }}
           CALLER_WORKFLOW: ${{ inputs.caller_workflow }}
