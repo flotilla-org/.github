@@ -58,14 +58,36 @@ jobs:
             REPO: ${{ github.repository }}
             PR NUMBER: ${{ github.event.pull_request.number }}
 
-            Please review this pull request and provide feedback on:
-            - Code quality and best practices
-            - Potential bugs or issues
-            - Performance considerations
-            - Security concerns
-            - Test coverage
+            Review this pull request against the issue it implements. Find that issue from the
+            PR body ("Closes #N", "Part of #N", or an issue number in the title) and read it with
+            `gh issue view`. Its body is the contract: what to build, what is out of scope, and the
+            acceptance tests. If the PR names no issue, say so and review against the PR body.
 
-            Use ${{ inputs.guidance }} for guidance on style and conventions. Be constructive and helpful in your feedback.
+            Use ${{ inputs.guidance }} for the repository's conventions. The owner's standing
+            rules for every flotilla-org repository:
+            - One implementation per job. A change extends the existing code in place; it does
+              not build a second pipeline, reader, cache or store beside it.
+            - A change that replaces code deletes the code it replaces.
+            - No timers, polling loops, sleeps or retries as fixes. The writer of an event
+              records it; readers react to it.
+            - Write only what something reads: no stored fields, indexes, options, messages or
+              parameters without a reader.
+            - No defensive crouch: no speculative hardening, leniency (accepting several shapes
+              of one input) or limits that the contract does not ask for.
+
+            Report only these two kinds of finding:
+            1. **Bug**: a concrete failure inside the contract's use. Give the input or sequence,
+               what goes wrong, and file:line. No "consider", "might want to" or "it would be
+               worth" items.
+            2. **Waste**: code the change could do without. Code beyond the contract; code that
+               duplicates existing code (name the existing code with file:line); code nothing
+               calls; a timer, poll or retry; a new field, option or message without a reader;
+               a test that cannot fail. Say what to delete.
+
+            Do not suggest new features, options, limits, timeouts, validation or hardening
+            unless it fixes a Bug as defined above. A smaller diff that meets the contract is
+            better than a larger one. Number each finding so it can be answered on its own, and
+            mark it **blocking** or **non-blocking**.
 
             Review the diff and relevant source directly in this session. Do not invoke
             /code-review or another review skill. Complete the review and post its
@@ -76,9 +98,20 @@ jobs:
             do not run those commands as part of this review.
 
             AFTER reviewing,
-              * CHECK your findings against the existing comments and replies on the PR. If follow-up issues are filed or the implementor pushed back, make sure that is correct: drop issues that are already addressed, and repeat issues that still need to be dealt with, with an explanation.
-              * ALWAYS use `gh pr comment` with your Bash tool to leave your review as a SINGLE comment on the PR, properly formatted as markdown, even if just to say that you found no issues.
+              * CHECK your findings against the existing comments and replies on the PR. Drop
+                findings that are already addressed, or that the implementer declined with a
+                reason you accept. Repeat a finding only when it still applies, with the reason,
+                and say plainly which earlier findings are resolved. Do not raise new
+                non-blocking findings on code an earlier round already reviewed.
+              * ALWAYS use `gh pr comment` with your Bash tool to leave your review as a SINGLE
+                comment on the PR, formatted as markdown, even if just to say that you found no
+                issues. Open it with the lines the PR adds and removes and the number of
+                blocking findings.
               * Include this marker in that comment: <!-- flotilla-review:${{ github.event.pull_request.head.sha }} -->
+              * End the comment with this line, and nothing after it:
+                <!-- review-findings: N -->
+                where N is the number of findings in this comment the implementer still has to
+                act on (0 when there are none).
               * Use `gh pr comment` with a quoted heredoc on stdin (`--body-file -`); do not create a temporary file or wrap the command in another shell.
           claude_args: >-
             --model ${{ inputs.model }}
